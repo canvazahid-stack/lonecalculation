@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customer Outstanding Statement</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --accent: #0b74e6;
+      --accent2: #e0f2ff;
+      --muted: #6b7280;
+      --radius: 14px;
+      font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #f0f6ff, #dce9ff);
+      color: #0f1724;
+      padding: 24px;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+      color: var(--accent);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 10px 35px rgba(11, 116, 230, 0.15);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      border-top: 5px solid var(--accent);
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input[type="number"],
+    input[type="date"],
+    input[type="text"] {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: 10px;
+      border: 1px solid #d0d8ee;
+      font-size: 15px;
+      box-sizing: border-box;
+      background: #f9fbff;
+      transition: all 0.3s ease;
+    }
+    input:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 2px var(--accent2);
+    }
+    input.error {
+      border-color: #e74c3c;
+      box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+    }
+    .col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .full {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .output {
+      background: #f8fbff;
+      border: 1px solid #e3ebff;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      color: #0f1724;
+      transition: color 0.3s ease;
+    }
+    .actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-calc {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-calc:hover {
+      background: #095fcc;
+    }
+    .btn-reset {
+      background: #eef3ff;
+      color: var(--accent);
+    }
+    .btn-print {
+      background: #10b981;
+      color: white;
+    }
+    .btn-export {
+      background: #8b5cf6;
+      color: white;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      margin-left: 5px;
+      color: var(--accent);
+      cursor: help;
+    }
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -100px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 12px;
+      font-weight: normal;
+    }
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    .error-message {
+      color: #e74c3c;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+    .warning-message {
+      color: #f59e0b;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+      background: #fef3c7;
+      padding: 8px;
+      border-radius: 6px;
+      border-left: 3px solid #f59e0b;
+    }
+    .payment-schedule {
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+    .payment-schedule h3 {
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .payment-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    .payment-table th, .payment-table td {
+      border: 1px solid #e3ebff;
+      padding: 10px;
+      text-align: center;
+    }
+    .payment-table th {
+      background-color: #f8fbff;
+      font-weight: 600;
+    }
+    .payment-table tr:nth-child(even) {
+      background-color: #f9fbff;
+    }
+    .summary-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(11, 116, 230, 0.1);
+      margin-top: 20px;
+      border-left: 4px solid var(--accent);
+    }
+    .summary-card h3 {
+      color: var(--accent);
+      margin-top: 0;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .summary-item {
+      display: flex;
+      flex-direction: column;
+    }
+    .summary-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    .summary-value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f1724;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 10px;
+    }
+    .spinner {
+      border: 4px solid rgba(11, 116, 230, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--accent);
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .future-projection {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .future-projection h4 {
+      color: #ea580c;
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    @media (max-width: 800px) {
+      .card {
+        grid-template-columns: 1fr;
+      }
+      .actions {
+        flex-direction: column;
+      }
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Print specific styles for the main page */
+    @media print {
+      body {
+        background: white; 
+      }
+      .actions, header, footer, .payment-schedule, .summary-card { /* Hide these elements from main page print */
+        display: none;
+      }
+      .card {
+        box-shadow: none;
+        border: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Customer Outstanding Statement</h1>
+      <div class="subtitle">Flat 12% annual interest (1% monthly)</div>
+    </header>
+
+    <main class="card" id="calculator">
+      <div class="col">
+        <div>
+          <label for="customerId">Customer ID</label>
+          <input id="customerId" type="text" placeholder="Enter Customer ID" />
+        </div>
+        <div>
+          <label for="price">Price
+            <span class="tooltip">ℹ️
+              <span class="tooltiptext">Total cost of the product/service</span>
+            </span>
+          </label>
+          <input id="price" type="number" min="0" placeholder="Example: 1250000" />
+          <div class="error-message" id="price-error"></div>
+        </div>
+        <div>
+          <label for="downPayment">Down Payment
+            <span class="tooltip">ℹ️
+              <span class="tooltiptext">Initial payment made at purchase</span>
+            </span>
+          </label>
+          <input id="downPayment" type="number" min="0" placeholder="Example: 250000" />
+          <div class="error-message" id="downPayment-error"></div>
+        </div>
+        <div>
+          <label for="numInstallments">Number of Installments (months)
+            <span class="tooltip">ℹ️
+              <span class="tooltiptext">Total repayment period in months</span>
+            </span>
+          </label>
+          <input id="numInstallments" type="number" min="1" placeholder="Example: 48" />
+          <div class="error-message" id="installments-error"></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div>
+          <label for="startDate">Installment Start Date</label>
+          <input id="startDate" type="date" />
+          <div class="error-message" id="date-error"></div>
+          <div class="warning-message" id="date-warning"></div>
+        </div>
+        <div>
+          <label for="totalPaidAmount">Total Paid Amount
+            <span class="tooltip">ℹ️
+              <span class="tooltiptext">Total amount paid including down payment</span>
+            </span>
+          </label>
+          <input id="totalPaidAmount" type="number" min="0" placeholder="Example: 320000" />
+          <div class="error-message" id="paidAmount-error"></div>
+        </div>
+        <div>
+          <label for="interestRate">Annual Interest Rate (%)</label>
+          <input id="interestRate" type="number" min="0" max="100" step="0.1" value="12" />
+        </div>
+      </div>
+
+      <div class="full" style="flex-direction:column; gap:14px;">
+        <!-- Future Projection Warning -->
+        <div class="future-projection" id="futureProjection" style="display: none;">
+          <h4>📅 ভবিষ্যতের প্রজেকশন</h4>
+          <div id="projectionMessage">এই ক্যালকুলেশনটি ভবিষ্যতের তারিখের জন্য প্রজেক্টেড রিপোর্ট দেখাচ্ছে।</div>
+        </div>
+
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="flex:1"><label>Loan Amount</label><div id="loanAmount" class="output">—</div></div>
+          <div style="flex:1"><label>EMI — Monthly Installment</label><div id="emi" class="output">—</div></div>
+          <div style="flex:1"><label>Total Flat Interest</label><div id="totalInterest" class="output">—</div></div>
+          <div style="flex:1"><label>Total Price (with Interest)</label><div id="totalCost" class="output">—</div></div>
+        </div>
+
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="flex:1"><label>Paid Installments</label><div id="derivedPaidCount" class="output">—</div></div>
+          <div style="flex:1"><label>Months Passed Installments</label><div id="monthsPassed" class="output">—</div></div>
+          <div style="flex:1"><label>Due Installments</label><div id="dueInstallments" class="output">—</div></div>
+        </div>
+
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="flex:1"><label>Total Amount Should Be Paid</label><div id="totalPayable" class="output">—</div></div>
+          <div style="flex:1"><label>Outstanding Due Amount (Pending)</label><div id="outstandingDue" class="output">—</div></div>
+        </div>
+
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <div style="flex:1"><label>Total Outstanding</label><div id="totalOutstanding" class="output">—</div></div>
+          <div style="flex:1"><label>Remaining Installments</label><div id="remainingInstallments" class="output">—</div></div>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Calculating...</p>
+      </div>
+
+      <div class="actions">
+        <button class="btn-calc" id="calc">📊 Calculate</button>
+        <button class="btn-reset" id="reset">🔄 Reset</button>
+        <button class="btn-export" id="export">📤 Export Data</button>
+        <button class="btn-print" id="print">🖨️ Print Statement</button>
+      </div>
+    </main>
+
+    <div class="summary-card" id="summaryCard" style="display: none;">
+      <h3>Payment Summary</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Total Loan Amount</span>
+          <span class="summary-value" id="summary-loanAmount">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Monthly Installment (EMI)</span>
+          <span class="summary-value" id="summary-emi">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Interest</span>
+          <span class="summary-value" id="summary-totalInterest">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Total Payable</span>
+          <span class="summary-value" id="summary-totalCost">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Amount Paid</span>
+          <span class="summary-value" id="summary-totalPaid">—</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Outstanding Balance</span>
+          <span class="summary-value" id="summary-outstanding">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="payment-schedule" id="paymentSchedule" style="display: none;">
+      <h3>Payment Schedule</h3>
+      <div class="payment-table-container">
+        <table class="payment-table" id="paymentTable">
+          <thead>
+            <tr>
+              <th>Installment No.</th>
+              <th>Payment Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="paymentTableBody">
+            <!-- Payment rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>Created by Md. Zahid Hasan, ACL</footer>
+  </div>
+
+  <script>
+    // Utility functions
+    function fmt(n){ if (!isFinite(n)) return '—'; return Number(n).toLocaleString('en-BD',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function parseNum(id){ return parseFloat(document.getElementById(id).value)||0; }
+    
+    // তারিখ ফরমেটিং ফাংশন - UI-এর জন্য DD/MM/YYYY
+    function formatDate(date) {
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+    
+    // CSV এক্সপোর্টের জন্য তারিখ ফরমেটিং - DD/MM/YY
+    function formatDateForCSV(date) {
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).slice(-2); // শুধুমাত্র শেষের দুই সংখ্যা
+      return `${day}/${month}/${year}`;
+    }
+    
+    // Input validation - UPDATED: Future dates allowed
+    function validateInputs() {
+      let isValid = true;
+      const price = parseNum('price');
+      const downPayment = parseNum('downPayment');
+      const numInstallments = parseInt(document.getElementById('numInstallments').value) || 0;
+      const startDate = document.getElementById('startDate').value;
+      const totalPaidAmount = parseNum('totalPaidAmount');
+      
+      // Reset error messages
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('.warning-message').forEach(el => {
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('input').forEach(el => {
+        el.classList.remove('error');
+      });
+      
+      // Validate price
+      if (price <= 0) {
+        document.getElementById('price-error').textContent = 'Price must be greater than 0';
+        document.getElementById('price-error').style.display = 'block';
+        document.getElementById('price').classList.add('error');
+        isValid = false;
+      }
+      
+      // Validate down payment
+      if (downPayment < 0) {
+        document.getElementById('downPayment-error').textContent = 'Down payment cannot be negative';
+        document.getElementById('downPayment-error').style.display = 'block';
+        document.getElementById('downPayment').classList.add('error');
+        isValid = false;
+      } else if (downPayment >= price) {
+        document.getElementById('downPayment-error').textContent = 'Down payment must be less than price';
+        document.getElementById('downPayment-error').style.display = 'block';
+        document.getElementById('downPayment').classList.add('error');
+        isValid = false;
+      }
+      
+      // Validate installments
+      if (numInstallments <= 0) {
+        document.getElementById('installments-error').textContent = 'Number of installments must be greater than 0';
+        document.getElementById('installments-error').style.display = 'block';
+        document.getElementById('numInstallments').classList.add('error');
+        isValid = false;
+      }
+      
+      // Validate start date - UPDATED: Allow future dates with warning
+      if (startDate) {
+        const startDateObj = new Date(startDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (startDateObj > today) {
+          // Show warning instead of error for future dates
+          document.getElementById('date-warning').textContent = 'ভবিষ্যতের তারিখ - প্রজেক্টেড ক্যালকুলেশন দেখানো হচ্ছে';
+          document.getElementById('date-warning').style.display = 'block';
+          // Don't set isValid to false - allow calculation
+        }
+      }
+      
+      // Validate total paid amount
+      if (totalPaidAmount < 0) {
+        document.getElementById('paidAmount-error').textContent = 'Total paid amount cannot be negative';
+        document.getElementById('paidAmount-error').style.display = 'block';
+        document.getElementById('totalPaidAmount').classList.add('error');
+        isValid = false;
+      }
+      
+      return isValid;
+    }
+    
+    // UPDATED: Future date calculation function
+    function calcMonthsPassed(startDate){
+      const today = new Date();
+      const start = new Date(startDate);
+      
+      // If start date is in future, return 0 months passed
+      if (start > today) {
+        return 0;
+      }
+      
+      const diffDays = (today - start) / (1000 * 60 * 60 * 24);
+      let months = Math.floor(diffDays / 30);
+      if (diffDays % 30 >= 1) months += 1;
+      return Math.max(0, months);
+    }
+    
+    // UPDATED: Check if date is in future
+    function isFutureDate(dateString) {
+      if (!dateString) return false;
+      const date = new Date(dateString);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return date > today;
+    }
+
+    // UPDATED: Calculate payment status based on total paid amount
+    function getPaymentStatus(installmentNumber, totalPaidAmount, emi, downPayment, monthsPassed) {
+      if (installmentNumber === 0) {
+        // Down Payment status
+        return totalPaidAmount >= downPayment ? 'Paid' : 'Unpaid';
+      } else {
+        // EMI status
+        const paidEMIAmount = totalPaidAmount - downPayment;
+        const paidInstallments = Math.floor(paidEMIAmount / emi);
+        
+        if (installmentNumber <= paidInstallments) {
+          return 'Paid';
+        } else if (installmentNumber <= monthsPassed) {
+          return 'Unpaid';
+        } else {
+          return 'Upcoming';
+        }
+      }
+    }
+    
+    // UPDATED: পেমেন্ট সিডিউল জেনারেটর - Installment Start Date থেকে শুরু হবে
+    function generatePaymentSchedule(emi, numInstallments, startDate, monthsPassed, totalPaidAmount, downPayment) {
+      let schedule = [];
+      const baseDate = new Date(startDate);
+      
+      // Down Payment (যদি থাকে)
+      if (downPayment > 0) {
+        const downPaymentStatus = getPaymentStatus(0, totalPaidAmount, emi, downPayment, monthsPassed);
+        schedule.push({
+          month: 'Down Payment',
+          date: formatDate(baseDate),
+          amount: downPayment,
+          status: downPaymentStatus
+        });
+      }
+      
+      // Monthly Installments - Installment Start Date থেকে শুরু
+      for (let i = 1; i <= numInstallments; i++) {
+        const paymentDate = new Date(baseDate);
+        paymentDate.setMonth(baseDate.getMonth() + (i - 1));
+        
+        const formattedDate = formatDate(paymentDate);
+        const status = getPaymentStatus(i, totalPaidAmount, emi, downPayment, monthsPassed);
+        
+        schedule.push({
+          month: `Installment ${i}`,
+          date: formattedDate,
+          amount: emi,
+          status: status
+        });
+      }
+      return schedule;
+    }
+    
+    // CSV এক্সপোর্টের জন্য পেমেন্ট সিডিউল জেনারেটর
+    function generatePaymentScheduleForCSV(emi, numInstallments, startDate, downPayment) {
+      let schedule = [];
+      const baseDate = new Date(startDate);
+      
+      // Down Payment
+      if (downPayment > 0) {
+        schedule.push({
+          month: 'Down Payment',
+          date: formatDateForCSV(baseDate),
+          amount: downPayment
+        });
+      }
+      
+      // Monthly Installments
+      for (let i = 1; i <= numInstallments; i++) {
+        const paymentDate = new Date(baseDate);
+        paymentDate.setMonth(baseDate.getMonth() + (i - 1));
+        
+        const formattedDate = formatDateForCSV(paymentDate);
+        
+        schedule.push({
+          month: `Installment ${i}`,
+          date: formattedDate,
+          amount: emi
+        });
+      }
+      return schedule;
+    }
+    
+    // Display payment schedule
+    function displayPaymentSchedule(schedule) {
+      const tableBody = document.getElementById('paymentTableBody');
+      tableBody.innerHTML = '';
+      
+      schedule.forEach(payment => {
+        const row = document.createElement('tr');
+        
+        // Status color coding
+        let statusClass = '';
+        if (payment.status === 'Paid') {
+          statusClass = 'style="color: #10b981; font-weight: 600;"';
+        } else if (payment.status === 'Unpaid') {
+          statusClass = 'style="color: #ef4444; font-weight: 600;"';
+        } else if (payment.status === 'Upcoming') {
+          statusClass = 'style="color: #f59e0b; font-weight: 600;"';
+        }
+        
+        row.innerHTML = `
+          <td>${payment.month}</td>
+          <td>${payment.date}</td>
+          <td>${fmt(payment.amount)}</td>
+          <td ${statusClass}>${payment.status}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+      
+      document.getElementById('paymentSchedule').style.display = 'block';
+    }
+    
+    // Data persistence
+    function saveCalculation() {
+      const calculationData = {
+        customerId: document.getElementById('customerId').value,
+        price: parseNum('price'),
+        downPayment: parseNum('downPayment'),
+        numInstallments: parseInt(document.getElementById('numInstallments').value),
+        startDate: document.getElementById('startDate').value,
+        totalPaidAmount: parseNum('totalPaidAmount'),
+        interestRate: parseNum('interestRate'),
+        timestamp: new Date().toISOString()
+      };
+      
+      localStorage.setItem('lastCalculation', JSON.stringify(calculationData));
+    }
+    
+    function loadLastCalculation() {
+      const saved = localStorage.getItem('lastCalculation');
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('customerId').value = data.customerId || '';
+        document.getElementById('price').value = data.price || '';
+        document.getElementById('downPayment').value = data.downPayment || '';
+        document.getElementById('numInstallments').value = data.numInstallments || '';
+        document.getElementById('startDate').value = data.startDate || '';
+        document.getElementById('totalPaidAmount').value = data.totalPaidAmount || '';
+        document.getElementById('interestRate').value = data.interestRate || 12;
+      }
+    }
+    
+    // Export data to CSV - DD/MM/YY ফরমেটে
+    function exportToCSV() {
+      const customerId = document.getElementById('customerId').value || 'Unknown';
+      const price = parseNum('price');
+      const downPayment = parseNum('downPayment');
+      const loanAmount = Math.max(0, price - downPayment);
+      const numInstallments = parseInt(document.getElementById('numInstallments').value) || 0;
+      const startDate = document.getElementById('startDate').value;
+      const totalPaidAmount = parseNum('totalPaidAmount');
+      const interestRate = parseNum('interestRate') / 100;
+      const monthlyRate = interestRate / 12;
+      
+      if (price <= 0 || numInstallments <= 0 || !startDate) {
+        alert('Please calculate with valid data and start date before exporting.');
+        return;
+      }
+      
+      const totalFlatInterest = loanAmount * monthlyRate * numInstallments;
+      const emi = (loanAmount + totalFlatInterest) / numInstallments;
+      
+      // CSV-এর জন্য আলাদা ফরমেট ব্যবহার
+      const schedule = generatePaymentScheduleForCSV(emi, numInstallments, new Date(startDate), downPayment);
+      
+      let csvContent = "Installment,Payment Date,Amount,Type\n";
+      
+      schedule.forEach(payment => {
+        const type = payment.month === 'Down Payment' ? 'Down Payment' : 'EMI';
+        csvContent += `${payment.month},${payment.date},${payment.amount},${type}\n`;
+      });
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `payment_schedule_${customerId}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+    // Main calculation function - UPDATED for future dates
+    document.getElementById('calc').addEventListener('click', () => {
+      if (!validateInputs()) return;
+      
+      document.getElementById('loading').style.display = 'block';
+      
+      setTimeout(() => {
+        const price = parseNum('price');
+        const downPayment = parseNum('downPayment');
+        const numInstallments = parseInt(document.getElementById('numInstallments').value) || 0;
+        const startVal = document.getElementById('startDate').value;
+        const totalPaidAmount = parseNum('totalPaidAmount');
+        const interestRate = parseNum('interestRate') / 100;
+        const monthlyRate = interestRate / 12;
+
+        const loanAmount = Math.max(0, price - downPayment);
+        const totalFlatInterest = loanAmount * monthlyRate * numInstallments;
+        const emi = (loanAmount + totalFlatInterest) / numInstallments;
+        const totalCost = downPayment + loanAmount + totalFlatInterest;
+
+        let monthsPassed = 0, monthsPassedDisplay = '—';
+        let isFutureProjection = false;
+        
+        if (startVal) {
+          const startDate = new Date(startVal + 'T00:00:00');
+          monthsPassed = Math.min(calcMonthsPassed(startDate), numInstallments);
+          
+          // Check if it's a future date
+          isFutureProjection = isFutureDate(startVal);
+          
+          if (isFutureProjection) {
+            monthsPassedDisplay = '০ মাস (ভবিষ্যতের তারিখ)';
+            // Show future projection warning
+            document.getElementById('futureProjection').style.display = 'block';
+            document.getElementById('projectionMessage').textContent = 
+              `লোন শুরু হবে: ${formatDate(startDate)} - এটি একটি প্রজেক্টেড ক্যালকুলেশন`;
+          } else {
+            monthsPassedDisplay = monthsPassed + ' মাস';
+            document.getElementById('futureProjection').style.display = 'none';
+          }
+        } else {
+          document.getElementById('futureProjection').style.display = 'none';
+        }
+        
+        const paidForInstallments = Math.max(0, totalPaidAmount - downPayment);
+        const derivedPaidCount = emi > 0 ? Math.floor(paidForInstallments / emi) : 0;
+        
+        let dueInstallments = Math.max(0, monthsPassed - derivedPaidCount);
+        dueInstallments = Math.min(dueInstallments, numInstallments - derivedPaidCount);
+
+        const totalPayable = downPayment + (monthsPassed * emi);
+        const outstandingDue = Math.max(0, totalPayable - totalPaidAmount);
+        const totalOutstanding = Math.max(0, totalCost - totalPaidAmount);
+        const remainingInstallments = Math.max(0, numInstallments - derivedPaidCount);
+
+        // Update main outputs
+        document.getElementById('loanAmount').innerText = fmt(loanAmount);
+        document.getElementById('emi').innerText = fmt(emi);
+        document.getElementById('totalInterest').innerText = fmt(totalFlatInterest);
+        document.getElementById('totalCost').innerText = fmt(totalCost);
+        document.getElementById('derivedPaidCount').innerText = derivedPaidCount + ' টি';
+        document.getElementById('monthsPassed').innerText = monthsPassedDisplay;
+        document.getElementById('dueInstallments').innerText = dueInstallments + ' টি';
+        document.getElementById('totalPayable').innerText = fmt(totalPayable);
+        document.getElementById('outstandingDue').innerText = fmt(outstandingDue);
+        document.getElementById('totalOutstanding').innerText = fmt(totalOutstanding);
+        document.getElementById('remainingInstallments').innerText = remainingInstallments + ' টি';
+
+        // Set colors for outstanding amounts
+        const dueField = document.getElementById('outstandingDue');
+        dueField.style.color = outstandingDue > 0 ? '#ef4444' : '#10b981';
+        const totalOutField = document.getElementById('totalOutstanding');
+        totalOutField.style.color = totalOutstanding > 0 ? '#ef4444' : '#10b981';
+
+        // Update summary card
+        document.getElementById('summary-loanAmount').innerText = fmt(loanAmount);
+        document.getElementById('summary-emi').innerText = fmt(emi);
+        document.getElementById('summary-totalInterest').innerText = fmt(totalFlatInterest);
+        document.getElementById('summary-totalCost').innerText = fmt(totalCost);
+        document.getElementById('summary-totalPaid').innerText = fmt(totalPaidAmount);
+        document.getElementById('summary-outstanding').innerText = fmt(totalOutstanding);
+        document.getElementById('summaryCard').style.display = 'block';
+
+        // Generate and display payment schedule if start date is provided
+        if (startVal) {
+          const schedule = generatePaymentSchedule(emi, numInstallments, new Date(startVal), monthsPassed, totalPaidAmount, downPayment);
+          displayPaymentSchedule(schedule);
+        }
+
+        // Save calculation
+        saveCalculation();
+        
+        document.getElementById('loading').style.display = 'none';
+      }, 800);
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      ['price','downPayment','numInstallments','startDate','totalPaidAmount','customerId'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('interestRate').value = 12;
+      
+      ['loanAmount','emi','totalInterest','totalCost','derivedPaidCount','monthsPassed','dueInstallments','totalPayable','outstandingDue','totalOutstanding','remainingInstallments'].forEach(id => {
+        const el = document.getElementById(id);
+        el.innerText = '—';
+        el.style.color = '#0f1724';
+      });
+      
+      // Hide additional sections
+      document.getElementById('summaryCard').style.display = 'none';
+      document.getElementById('paymentSchedule').style.display = 'none';
+      document.getElementById('futureProjection').style.display = 'none';
+      
+      // Clear error messages
+      document.querySelectorAll('.error-message').forEach(el => {
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('.warning-message').forEach(el => {
+        el.style.display = 'none';
+      });
+      document.querySelectorAll('input').forEach(el => {
+        el.classList.remove('error');
+      });
+    });
+
+    document.getElementById('export').addEventListener('click', exportToCSV);
+
+    // Print functionality - UPDATED for future dates
+    document.getElementById('print').addEventListener('click', () => {
+      const printWindow = window.open('', '', 'height=900,width=700');
+      printWindow.document.write('<html><head><title>Customer Outstanding Statement</title>');
+      printWindow.document.write('<style>');
+      printWindow.document.write(`
+          @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+          body { 
+            font-family: 'Poppins', sans-serif; 
+            margin: 20px;
+            color: #333; 
+            font-size: 13px;
+            line-height: 1.3;
+          } 
+          .print-container { 
+            max-width: 650px; 
+            margin: 0 auto; 
+            padding: 15px;
+            border: 1px solid #eee; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            border-radius: 8px; 
+          }
+          .print-header { 
+            text-align: center; 
+            color: #0b74e6; 
+            font-size: 22px;
+            font-weight: 800; 
+            margin-bottom: 8px;
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+          }
+          .print-subtitle { 
+            text-align: center; 
+            font-size: 13px;
+            color: #6b7280; 
+            margin-bottom: 15px;
+          }
+          .customer-info { 
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: 600; 
+            color: #222; 
+          }
+          .future-notice {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #ea580c;
+          }
+          .section-title { 
+            font-size: 16px;
+            font-weight: 700; 
+            color: #0b74e6; 
+            margin-top: 20px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e0f2ff;
+            padding-bottom: 4px;
+          }
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 8px;
+            margin-bottom: 15px;
+          }
+          th, td { 
+            border: 1px solid #f0f0f0; 
+            padding: 8px;
+            text-align: left; 
+          }
+          th { 
+            background-color: #f8fbff; 
+            font-weight: 600; 
+            color: #333; 
+            width: 60%;
+          } 
+          td { 
+            color: #555; 
+          }
+          .value-col { 
+            text-align: right; 
+            font-weight: 600; 
+          } 
+          .highlight-red { color: #ef4444; font-weight: 700; }
+          .highlight-green { color: #10b981; font-weight: 700; }
+          .printed-on { 
+            text-align: right; 
+            font-size: 11px;
+            color: #777; 
+            margin-top: 15px;
+            margin-bottom: 5px; 
+          }
+          .footer-print { 
+            text-align: center; 
+            margin-top: 10px;
+            font-size: 11px;
+            color: #777; 
+          }
+      `);
+      printWindow.document.write('</style>');
+      printWindow.document.write('</head><body>');
+
+      printWindow.document.write('<div class="print-container">');
+      printWindow.document.write('<div class="print-header">Customer Outstanding Statement</div>');
+      printWindow.document.write('<div class="print-subtitle">Flat 12% annual interest (1% monthly)</div>');
+
+      const customerId = document.getElementById('customerId').value || '—';
+      printWindow.document.write(`<div class="customer-info"><strong>Customer ID:</strong> ${customerId}</div>`);
+
+      // Check if it's a future projection
+      const startDate = document.getElementById('startDate').value;
+      const isFuture = isFutureDate(startDate);
+      if (isFuture) {
+        printWindow.document.write('<div class="future-notice">');
+        printWindow.document.write('<strong>📅 ভবিষ্যতের প্রজেকশন:</strong> এই রিপোর্টটি ভবিষ্যতের তারিখের জন্য প্রজেক্টেড ক্যালকুলেশন দেখাচ্ছে।');
+        printWindow.document.write('</div>');
+      }
+
+      // Helper function to add a row to the table
+      const addRow = (label, value, isHighlightable = false) => {
+        let valueClass = "value-col";
+        if (isHighlightable) {
+            const numValue = parseFloat(value.replace(/[^0-9.-]+/g,""));
+            if (numValue > 0) valueClass += " highlight-red";
+            else if (numValue === 0) valueClass += " highlight-green";
+        }
+        printWindow.document.write(`<tr><th>${label}</th><td class="${valueClass}">${value}</td></tr>`);
+      };
+
+      // --- Input Details Table ---
+      printWindow.document.write('<div class="section-title">Input Details</div>');
+      printWindow.document.write('<table><tbody>');
+      addRow('Price', document.getElementById('price').value || '—');
+      addRow('Down Payment', document.getElementById('downPayment').value || '—');
+      addRow('Number of Installments (months)', document.getElementById('numInstallments').value || '—');
+      addRow('Installment Start Date', startDate ? formatDate(new Date(startDate)) : '—');
+      addRow('Total Paid Amount (User Input)', document.getElementById('totalPaidAmount').value || '—');
+      printWindow.document.write('</tbody></table>');
+
+      // --- Calculated Statement ---
+      printWindow.document.write('<div class="section-title">Outstanding Statement</div>');
+      printWindow.document.write('<table><tbody>');
+      addRow('Loan Amount', document.getElementById('loanAmount').innerText);
+      addRow('EMI — Monthly Installment', document.getElementById('emi').innerText);
+      addRow('Total Flat Interest', document.getElementById('totalInterest').innerText);
+      addRow('Total Price (with Interest)', document.getElementById('totalCost').innerText);
+      addRow('Months Passed Installments', document.getElementById('monthsPassed').innerText);
+      addRow('Paid Installments', document.getElementById('derivedPaidCount').innerText);
+      addRow('Due Installments', document.getElementById('dueInstallments').innerText);
+      addRow('Total Amount Should Be Paid (till now)', document.getElementById('totalPayable').innerText);
+      addRow('Outstanding Due Amount (Pending)', document.getElementById('outstandingDue').innerText, true);
+      addRow('Total Outstanding', document.getElementById('totalOutstanding').innerText, true);
+      addRow('Remaining Installments', document.getElementById('remainingInstallments').innerText);
+      printWindow.document.write('</tbody></table>');
+
+      // Printed on date
+      const today = new Date();
+      printWindow.document.write(`<div class="printed-on">Printed on: ${formatDate(today)} ${today.toLocaleTimeString('en-BD')}</div>`);
+
+      printWindow.document.write('<div class="footer-print">Created by Md. Zahid Hasan, ACL</div>');
+      printWindow.document.write('</div>');
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    });
+
+    // Load last calculation on page load
+    window.addEventListener('DOMContentLoaded', loadLastCalculation);
+  </script>
+</body>
+</html>
