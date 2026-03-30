@@ -102,6 +102,12 @@
       border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;
     }
 
+    .table-container { overflow-x: auto; background: #fff; border-radius: 12px; border: 1px solid var(--border-color); }
+    .ui-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    .ui-table th, .ui-table td { padding: 10px 15px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+    .ui-table th { background: #f8fbff; font-weight: 600; color: var(--text-muted); }
+    .ui-table tr:hover { background: #fafcff; }
+
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -112,8 +118,8 @@
 
   <div id="pdfLoadingOverlay">
     <div class="spinner"></div>
-    <h2 style="color: #0b74e6; font-family: 'Poppins', sans-serif;">Preparing Document...</h2>
-    <p style="color: #666; font-size: 14px;">Please wait.</p>
+    <h2 style="color: #0b74e6; font-family: 'Poppins', sans-serif;">Preparing PDF...</h2>
+    <p style="color: #666; font-size: 14px;">Please wait while we generate your statement.</p>
   </div>
 
   <div class="wrap" id="appWrap">
@@ -227,6 +233,23 @@
       </div>
     </main>
 
+    <main class="card" id="scheduleCard" style="display: none;">
+      <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 16px;">🗓️ Payment Schedule</h3>
+      <div class="table-container">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Installment</th>
+              <th>Date</th>
+              <th style="text-align: right;">Amount</th>
+              <th style="text-align: center;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </main>
+
     <footer style="text-align: center; color: var(--text-muted); font-size: 12px; margin-top: 10px;">Created by Md. Zahid Hasan, ACL</footer>
   </div>
 
@@ -235,6 +258,7 @@
     const getEl = (id) => document.getElementById(id);
     
     const fmtExact = (n) => isFinite(n) ? Number(n).toLocaleString('en-BD', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—';
+    const fmtRound = (n) => isFinite(n) ? Math.round(n).toLocaleString('en-BD') + '/-' : '—';
     
     function formatDate(dateString) {
       if(!dateString) return '—';
@@ -342,10 +366,41 @@
       getEl('box-totalout').style.borderColor = d.totalOut > 0 ? '#fcd34d' : '#6ee7b7';
       totalOutEl.style.color = d.totalOut > 0 ? '#b45309' : '#047857';
 
+      renderUITable(d);
       saveState();
     }
 
-    function generatePrintHTML() {
+    function renderUITable(d) {
+      if(!d.startVal) return;
+      const tbody = getEl('tableBody');
+      tbody.innerHTML = '';
+      let html = '';
+      const baseDate = new Date(d.startVal);
+
+      if(d.downPayment > 0) {
+        let status = d.paid >= d.downPayment ? 'Paid' : 'Unpaid';
+        let color = status === 'Paid' ? '#10b981' : '#ef4444';
+        html += `<tr><td>Down Payment</td><td>${formatDate(d.startVal)}</td><td style="text-align: right; font-weight:600;">${fmtRound(d.downPayment)}</td><td style="text-align: center; font-weight: bold; color: ${color};">${status}</td></tr>`;
+      }
+
+      for(let i=1; i<=d.numInst; i++) {
+        let pDate = new Date(baseDate);
+        pDate.setMonth(baseDate.getMonth() + (i-1));
+        
+        let status = 'Upcoming';
+        if(i <= d.paidInstCount) status = 'Paid';
+        else if(i <= d.monthsPassed) status = 'Unpaid';
+        
+        let color = status === 'Paid' ? '#10b981' : (status === 'Unpaid' ? '#ef4444' : '#f59e0b');
+        html += `<tr><td>Installment ${i}</td><td>${formatDate(pDate)}</td><td style="text-align: right; font-weight:600;">${fmtRound(d.emi)}</td><td style="text-align: center; font-weight: bold; color: ${color};">${status}</td></tr>`;
+      }
+      
+      tbody.innerHTML = html;
+      getEl('scheduleCard').style.display = 'block';
+    }
+
+    // Generate HTML String with dynamic parameter for Logo
+    function generatePrintHTML(logoImgSrc = 'logo.png') {
       const d = calculateData();
       const cName = getEl('customerName').value || '—';
       const cid = getEl('customerId').value || '—';
@@ -356,7 +411,7 @@
           
           <div style="position: relative; text-align: center; border-bottom: 2px solid #0b74e6; padding-bottom: 15px; margin-bottom: 20px; min-height: 80px;">
             <div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);">
-              <img src="logo.png" alt="Logo" style="max-height: 80px; max-width: 150px; object-fit: contain;" />
+              <img src="${logoImgSrc}" alt="Logo" style="max-height: 80px; max-width: 150px; object-fit: contain;" onerror="this.style.display='none'" />
             </div>
             <div style="display: inline-block;">
               <div style="font-size: 26px; font-weight: 800; color: #0b74e6; letter-spacing: 0.5px; margin-bottom: 4px;">HYDER MOTORS</div>
@@ -440,40 +495,76 @@
       return html;
     }
 
-    getEl('btn-pdf').addEventListener('click', () => {
+    // --- Dynamic Base64 Image Converter for PDF Fix ---
+    async function getBase64Logo() {
+      try {
+        const response = await fetch('logo.png');
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (err) {
+        console.warn("Logo load error for PDF:", err);
+        return 'logo.png'; // Fallback
+      }
+    }
+
+    // --- PDF Download Action ---
+    getEl('btn-pdf').addEventListener('click', async () => {
       if(!calculateData()) return alert("Please calculate with valid data first.");
       const cid = getEl('customerId').value || 'Unknown';
       const cName = getEl('customerName').value || 'Unknown';
       const fileNameStr = `Statement_${cName}_${cid}.pdf`.replace(/ /g, '_');
       
       getEl('pdfLoadingOverlay').style.display = 'flex';
+      window.scrollTo(0, 0); // Fix scroll bug
+
+      // Convert Logo to Base64 to bypass Canvas Taint security issue
+      const pdfLogoSrc = await getBase64Logo();
 
       setTimeout(() => {
-        const htmlContent = generatePrintHTML();
-        // Passing HTML string directly to html2pdf solves all blank page issues
+        const container = document.createElement('div');
+        container.id = 'pdfTempContainer';
+        container.innerHTML = generatePrintHTML(pdfLogoSrc);
+        
+        getEl('appWrap').style.display = 'none';
+        
+        const originalBodyBg = document.body.style.background;
+        document.body.style.background = '#ffffff';
+        
+        document.body.appendChild(container);
+
         const opt = {
-          margin:       [0.3, 0], 
+          margin:       0.2, 
           filename:     fileNameStr,
           image:        { type: 'jpeg', quality: 1 },
-          html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+          html2canvas:  { scale: 2, useCORS: true, logging: false },
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(htmlContent).save().then(() => {
+        html2pdf().set(opt).from(container).save().then(() => {
+          document.body.removeChild(container);
+          document.body.style.background = originalBodyBg;
+          getEl('appWrap').style.display = 'block';
           getEl('pdfLoadingOverlay').style.display = 'none';
         }).catch(err => {
           console.error('PDF Error:', err);
+          document.body.removeChild(container);
+          document.body.style.background = originalBodyBg;
+          getEl('appWrap').style.display = 'block';
           getEl('pdfLoadingOverlay').style.display = 'none';
-          alert('Error generating PDF. Please use Print -> Save as PDF.');
+          alert('Error generating PDF. Please try Print as PDF.');
         });
-      }, 300);
+      }, 200);
     });
 
+    // --- Print Action ---
     getEl('btn-print').addEventListener('click', () => {
       if(!calculateData()) return alert("Please calculate with valid data first.");
-      
-      // We open window and wait for image to load before printing
       const win = window.open('', '_blank');
+      
       win.document.write(`
         <html>
           <head>
@@ -483,14 +574,28 @@
               body { margin: 1cm; -webkit-print-color-adjust: exact; print-color-adjust: exact; background: #fff; }
             </style>
           </head>
-          <body onload="window.print(); window.close();">
-            ${generatePrintHTML()}
+          <body>
+            ${generatePrintHTML('logo.png')}
           </body>
         </html>
       `);
       win.document.close();
+      
+      // Wait for image to be fully loaded before printing
+      const img = win.document.querySelector('img');
+      const performPrint = () => {
+          win.focus();
+          win.print();
+      };
+      if (img && !img.complete) {
+          img.onload = performPrint;
+          img.onerror = performPrint;
+      } else {
+          setTimeout(performPrint, 250);
+      }
     });
 
+    // --- State Management ---
     function saveState() {
       const ids = ['customerName','customerId','price','downPayment','interestRate','numInstallments','startDate','totalPaidAmount'];
       const data = {};
@@ -513,6 +618,7 @@
       getEl('interestRate').value = '12'; 
       document.querySelectorAll('.output-val').forEach(o => { o.innerText = '—'; o.style.color = ''; });
       getEl('futureWarning').style.display = 'none';
+      getEl('scheduleCard').style.display = 'none';
       getEl('box-pending').style.background = '#f8fbff'; getEl('box-pending').style.borderColor = 'var(--border-color)';
       getEl('box-totalout').style.background = '#f8fbff'; getEl('box-totalout').style.borderColor = 'var(--border-color)';
       clearErrors(); localStorage.removeItem('calcState');
