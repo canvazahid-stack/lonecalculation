@@ -221,7 +221,7 @@
         </div>
         <div class="output-box" id="box-totalout" style="grid-column: 1 / -1;">
           <div class="output-label">Total Outstanding Balance</div>
-          <div class="output-val" id="out-totalout" style="font-size: 20px;">—</div>
+          <div class="output-val" id="out-totalout-balance" style="font-size: 20px;">—</div>
         </div>
       </div>
 
@@ -353,7 +353,7 @@
       getEl('out-paidamount').innerText = fmtExact(d.paid); 
       
       const pendingEl = getEl('out-pending');
-      const totalOutEl = getEl('out-totalout');
+      const totalOutEl = getEl('out-totalout-balance');
       
       pendingEl.innerText = fmtExact(d.pendingDue);
       totalOutEl.innerText = fmtExact(d.totalOut);
@@ -375,7 +375,10 @@
       const tbody = getEl('tableBody');
       tbody.innerHTML = '';
       let html = '';
-      const baseDate = new Date(d.startVal);
+      
+      const startDay = new Date(d.startVal).getDate();
+      const startMonth = new Date(d.startVal).getMonth();
+      const startYear = new Date(d.startVal).getFullYear();
 
       if(d.downPayment > 0) {
         let status = d.paid >= d.downPayment ? 'Paid' : 'Unpaid';
@@ -384,8 +387,13 @@
       }
 
       for(let i=1; i<=d.numInst; i++) {
-        let pDate = new Date(baseDate);
-        pDate.setMonth(baseDate.getMonth() + (i-1));
+        // ফেব্রুয়ারি মাসের ডেট ওভারফ্লো ফিক্স করার লজিক
+        let pDate = new Date(startYear, startMonth + (i-1), startDay);
+        
+        // তারিখ সামঞ্জস্য চেক (যদি ডেট ওভারফ্লো হয়ে পরবর্তী মাসে চলে যায়)
+        if (pDate.getDate() !== startDay) {
+          pDate = new Date(startYear, startMonth + i, 0); // ওই মাসের শেষ দিন
+        }
         
         let status = 'Upcoming';
         if(i <= d.paidInstCount) status = 'Paid';
@@ -399,7 +407,6 @@
       getEl('scheduleCard').style.display = 'block';
     }
 
-    // Generate HTML String with dynamic parameter for Logo
     function generatePrintHTML(logoImgSrc = 'logo.png') {
       const d = calculateData();
       const cName = getEl('customerName').value || '—';
@@ -495,7 +502,6 @@
       return html;
     }
 
-    // --- Dynamic Base64 Image Converter for PDF Fix ---
     async function getBase64Logo() {
       try {
         const response = await fetch('logo.png');
@@ -507,11 +513,10 @@
         });
       } catch (err) {
         console.warn("Logo load error for PDF:", err);
-        return 'logo.png'; // Fallback
+        return 'logo.png';
       }
     }
 
-    // --- PDF Download Action ---
     getEl('btn-pdf').addEventListener('click', async () => {
       if(!calculateData()) return alert("Please calculate with valid data first.");
       const cid = getEl('customerId').value || 'Unknown';
@@ -519,9 +524,8 @@
       const fileNameStr = `Statement_${cName}_${cid}.pdf`.replace(/ /g, '_');
       
       getEl('pdfLoadingOverlay').style.display = 'flex';
-      window.scrollTo(0, 0); // Fix scroll bug
+      window.scrollTo(0, 0);
 
-      // Convert Logo to Base64 to bypass Canvas Taint security issue
       const pdfLogoSrc = await getBase64Logo();
 
       setTimeout(() => {
@@ -530,10 +534,8 @@
         container.innerHTML = generatePrintHTML(pdfLogoSrc);
         
         getEl('appWrap').style.display = 'none';
-        
         const originalBodyBg = document.body.style.background;
         document.body.style.background = '#ffffff';
-        
         document.body.appendChild(container);
 
         const opt = {
@@ -560,7 +562,6 @@
       }, 200);
     });
 
-    // --- Print Action ---
     getEl('btn-print').addEventListener('click', () => {
       if(!calculateData()) return alert("Please calculate with valid data first.");
       const win = window.open('', '_blank');
@@ -581,7 +582,6 @@
       `);
       win.document.close();
       
-      // Wait for image to be fully loaded before printing
       const img = win.document.querySelector('img');
       const performPrint = () => {
           win.focus();
@@ -595,7 +595,6 @@
       }
     });
 
-    // --- State Management ---
     function saveState() {
       const ids = ['customerName','customerId','price','downPayment','interestRate','numInstallments','startDate','totalPaidAmount'];
       const data = {};
